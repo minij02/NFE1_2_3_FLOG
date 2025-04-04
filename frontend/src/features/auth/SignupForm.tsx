@@ -178,7 +178,7 @@ const SignupForm = () => {
               });
             }}
           ></Input>
-          {!form.validId && <WarningMessage>사용 할 수 없는 아이디입니다</WarningMessage>}
+          {!form.validId && <WarningMessage>사용할 수 없는 아이디입니다</WarningMessage>}
         </DetailForm>
         <DetailForm>
           <TextLabel>비밀번호</TextLabel>
@@ -251,7 +251,7 @@ const SignupForm = () => {
               });
             }}
           ></Input>
-          {!form.validNickname && <WarningMessage>사용 할 수 없는 닉네임입니다</WarningMessage>}
+          {!form.validNickname && <WarningMessage>사용할 수 없는 닉네임입니다</WarningMessage>}
         </DetailForm>
         <ButtonBox>
           <Button onClick={() => {}}>가입취소</Button>

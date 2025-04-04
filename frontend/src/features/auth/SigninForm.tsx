@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import closePw from "../../shared/assets/auth-icons/closePw.png";
+import openPw from "../../shared/assets/auth-icons/openPw.png";
 import { useNavigate } from "react-router-dom";
 
 const black = "#212529";
@@ -45,7 +46,7 @@ const Input = styled.input`
   border-radius: 5px;
 `;
 
-const InputIcon = styled.div`
+const InputIcon = styled.img`
   position: absolute;
   margin-top: 32px;
   margin-left: 360px;
@@ -175,9 +176,13 @@ const SigninForm = () => {
           type={isOpenPassword ? "text" : "password"}
           placeholder="비밀번호를 입력해주세요"
         ></Input>
-        <InputIcon onClick={() => setIsOpenPassword((prev) => !prev)}>
-          {isOpenPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-        </InputIcon>
+         <InputIcon
+          onClick={() => {
+            setIsOpenPassword((prev) => !prev);
+          }}
+          src={isOpenPassword ? closePw : openPw}
+          alt="isOpenPasswordIcon"
+        />
       </DetailForm>
 
       {loginError && (
