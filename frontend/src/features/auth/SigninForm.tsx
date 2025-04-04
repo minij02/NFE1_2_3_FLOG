@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import closePw from "../../shared/assets/auth-icons/closePw.png";
-import openPw from "../../shared/assets/auth-icons/openPw.png";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
 const black = "#212529";
@@ -46,7 +45,7 @@ const Input = styled.input`
   border-radius: 5px;
 `;
 
-const InputIcon = styled.img`
+const InputIcon = styled.div`
   position: absolute;
   margin-top: 32px;
   margin-left: 360px;
@@ -85,6 +84,13 @@ const GoSignup = styled.div`
   cursor: pointer;
 `;
 
+const ErrorMessage = styled.div`
+  color: red;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 10px;
+`;
+
 const SigninForm = () => {
   const navigate = useNavigate();
   // InputData
@@ -95,6 +101,9 @@ const SigninForm = () => {
 
   // 비밀번호 아이콘 클릭 여부에 따라 type="text or password"
   const [isOpenPassword, setIsOpenPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [unlockTime, setUnlockTime] = useState<string | null>(null);
 
   // POST 요청
   const handleLogin = async () => {
@@ -120,9 +129,28 @@ const SigninForm = () => {
       console.log(`유저data${JSON.stringify(data)}`);
       alert("로그인 성공");
       navigate("/");
-    } catch (error) {
-      console.error(error);
-      alert("로그인 실패");
+    } catch (error: any) {
+      const errRes = error.response?.data;
+      const errorMessage =
+        errRes?.message || "로그인 중 알 수 없는 오류가 발생했습니다.";
+      setLoginError(errorMessage);
+
+      if (typeof errRes?.remainingAttempts === "number") {
+        setRemainingAttempts(errRes.remainingAttempts);
+      } else {
+        setRemainingAttempts(null);
+      }
+
+      if (errRes?.unlockTime) {
+        const unlock = new Date(errRes.unlockTime);
+        const localTime = unlock.toLocaleString("ko-KR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        setUnlockTime(localTime);
+      } else {
+        setUnlockTime(null);
+      }
     }
   };
 
@@ -147,14 +175,21 @@ const SigninForm = () => {
           type={isOpenPassword ? "text" : "password"}
           placeholder="비밀번호를 입력해주세요"
         ></Input>
-        <InputIcon
-          onClick={() => {
-            setIsOpenPassword((prev) => !prev);
-          }}
-          src={isOpenPassword ? closePw : openPw}
-          alt="isOpenPasswordIcon"
-        ></InputIcon>
+        <InputIcon onClick={() => setIsOpenPassword((prev) => !prev)}>
+          {isOpenPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+        </InputIcon>
       </DetailForm>
+
+      {loginError && (
+        <ErrorMessage>
+          {loginError}
+          {remainingAttempts !== null && (
+            <div>남은 로그인 시도: {remainingAttempts}회</div>
+          )}
+          {unlockTime && <div>잠김 해제 예정 시간: {unlockTime}</div>}
+        </ErrorMessage>
+      )}
+
       <ButtonBox>
         <Button
           onClick={(e) => {
