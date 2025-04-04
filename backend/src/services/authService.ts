@@ -52,6 +52,13 @@ export const login = async (userId: string, password: string) => {
     throw new Error("잘못된 사용자 ID입니다.");
   }
 
+  // 잠금 시간이 지났으면 초기화화
+  if (user.lockUntil && user.lockUntil < new Date()) {
+    user.loginFailCount = 0;
+    user.lockUntil = undefined;
+    await user.save();
+  }
+
   // 현재 계정이 잠금 상태인지 확인
   if (user.lockUntil && user.lockUntil > new Date()) {
     throw new Error("계정이 일시적으로 잠금되었습니다. 나중에 다시 시도해주세요.");
