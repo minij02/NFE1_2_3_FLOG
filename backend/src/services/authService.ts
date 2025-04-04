@@ -1,4 +1,3 @@
-// src/services/authService.ts
 import User, { IUser } from "../models/userModel";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
@@ -25,7 +24,7 @@ export const signupUser = async (
   }
 };
 
-// Admin 계정을 만드는 로직 - 민주님
+// Admin 계정을 만드는 로직
 export const createAdmin = async (userData: any) => {
   const { userId, password, nickname, profileImage, blogName, bio } = userData;
 
@@ -53,14 +52,33 @@ export const login = async (userId: string, password: string) => {
     throw new Error("잘못된 사용자 ID입니다.");
   }
 
+  // 현재 계정이 잠금 상태인지 확인
+  if (user.lockUntil && user.lockUntil > new Date()) {
+    throw new Error("계정이 일시적으로 잠금되었습니다. 나중에 다시 시도해주세요.");
+  }
+
   // 비밀번호 확인
   const isMatch = await bcrypt.compare(password, user.password);
+  
   if (!isMatch) {
+    user.loginFailCount = (user.loginFailCount || 0) + 1;
+
+    // 5회 이상 실패 -> 10분 동안 잠금
+    if (user.loginFailCount >= 5) {
+      user.lockUntil = new Date(Date.now() + 10 * 60 * 1000); // 10분
+      await user.save();
+      throw new Error("비밀번호를 5회 이상 틀렸습니다. 계정이 10분간 잠금됩니다.");
+    }
+
+    await user.save();
     throw new Error("잘못된 비밀번호입니다.");
   }
 
+  // 로그인 성공 시 실패 횟수 초기화
+  user.loginFailCount = 0;
+  user.lockUntil = undefined;
+
   // JWT 토큰 생성
-  const secret = process.env.JWT_SECRET;
   const token = jwt.sign(
     { userId: user._id, isAdmin: user.isAdmin },
     process.env.JWT_SECRET!,

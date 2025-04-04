@@ -1,4 +1,3 @@
-// src/middlewares/authMiddleware.ts
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel"; // User 모델 import
 import { IUser } from "../models/userModel";
@@ -48,7 +47,7 @@ export const validateSignup = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-// 로그인 미들웨어 - 민주님
+// 로그인 미들웨어
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 

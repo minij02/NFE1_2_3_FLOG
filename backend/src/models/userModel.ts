@@ -1,5 +1,3 @@
-// src/models/userModel.ts
-
 import mongoose, { Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
@@ -19,6 +17,8 @@ export interface IUser extends Document {
   notifications?: mongoose.Types.ObjectId[];
   tier?: string;
   points?: number;
+  loginFailCount?: number;         // 로그인 실패 횟수
+  lockUntil?: Date;                // 계정 잠금 시간
   styleActivities?: {
     casual?: mongoose.Types.ObjectId[];
     street?: mongoose.Types.ObjectId[];
@@ -62,6 +62,8 @@ const userSchema = new mongoose.Schema<IUser>({
   notifications: [{ type: mongoose.Types.ObjectId, ref: "Notification" }],
   tier: { type: String },
   points: { type: Number, default: 0 },
+  loginFailCount: { type: Number, default: 0 },         // 로그인 실패 횟수
+  lockUntil: { type: Date },                            // 계정 잠금 시간
   styleActivities: {
     casual: [{ type: mongoose.Types.ObjectId, ref: "Post" }],
     street: [{ type: mongoose.Types.ObjectId, ref: "Post" }],
