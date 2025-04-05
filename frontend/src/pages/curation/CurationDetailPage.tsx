@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import styled from "styled-components";
+import Quill from "quill";
 import PostComments from "../../features/posts/postdetail/PostComments";
 import CurationCreateTitle from "../../features/curation/CurationCreateTitle";
 import CurationCreateThumbnail from "../../features/curation/CurationCreateThumbnail";
@@ -292,7 +293,7 @@ interface ICuration {
   title: string;
   startDate: string;
   endDate: string;
-  content: string[];
+  content: { ops: any[] };
   genderFilter: string[];
   ageFilter: string[];
   styleFilter: string[];
@@ -313,6 +314,7 @@ interface IEntry {
 const CurationDetailPage = (): JSX.Element => {
   const { curationId } = useParams<{ curationId: string }>();
   const [curation, setCuration] = useState<ICuration | null>(null);
+  const [htmlContent, setHtmlContent] = useState<string>("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [entries, setEntries] = useState<IEntry[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -354,6 +356,14 @@ const CurationDetailPage = (): JSX.Element => {
     };
   }, []);
 
+   // Delta -> HTML 변환 유틸
+   const deltaToHTML = (delta: any): string => {
+    const tempContainer = document.createElement("div");
+    const tempEditor = new Quill(tempContainer);
+    tempEditor.setContents(delta);
+    return tempContainer.querySelector(".ql-editor")?.innerHTML || "";
+  };
+
   useEffect(() => {
     const fetchCuration = async () => {
       if (!curationId) return;
@@ -369,13 +379,14 @@ const CurationDetailPage = (): JSX.Element => {
 
         const fetchedCuration = response.data.curation;
 
+        // Delta -> HTML 변환
+        const html = deltaToHTML(fetchedCuration.content);
+        setHtmlContent(html); 
+
         setCuration(fetchedCuration);
         setLikeCount(fetchedCuration.likes.length);
         setCommentCount(fetchedCuration.comments.length);
         setIsLiked(fetchedCuration.likes.includes(localStorage.getItem("userId")!));
-
-        // content 배열을 하나의 문자열로 변환
-        const contentString = fetchedCuration.content.join("\n\n");
 
          // Zustand store에 데이터를 설정하여 수정 모드에서 반영되도록 함
          setData({
@@ -383,7 +394,7 @@ const CurationDetailPage = (): JSX.Element => {
           thumbnail: fetchedCuration.thumbnail || '',
           startDate: new Date(fetchedCuration.startDate),
           endDate: new Date(fetchedCuration.endDate),
-          content: [contentString],
+          content: fetchedCuration.content,
           tags: fetchedCuration.tags,
           genderFilter: fetchedCuration.genderFilter,
           ageFilter: fetchedCuration.ageFilter,
@@ -571,11 +582,7 @@ const CurationDetailPage = (): JSX.Element => {
             )}
           </DateRange>
 
-          <Content>
-          {curation.content.map((paragraph, index) => (
-    <p key={index}>{stripHtmlTags(paragraph)}</p>
-  ))}
-          </Content>
+          <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
 
           <TagsContainer>
             {curation.tags.map((tag, index) => (

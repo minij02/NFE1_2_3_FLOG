@@ -7,7 +7,12 @@ export interface ICuration extends Document {
   thumbnail: string;
   startDate: Date;
   endDate: Date;
-  content: string[];
+  content: {
+    ops: Array<{
+      insert?: string | { [key: string]: any };
+      attributes?: { [key: string]: any };
+    }>;
+  };
   tags: string[];
   likes: mongoose.Types.ObjectId[];
   comments: mongoose.Types.ObjectId[];
@@ -27,7 +32,10 @@ const curationSchema: Schema<ICuration> = new mongoose.Schema({
   thumbnail: { type: String },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
-  content: [{ type: String }],
+  content: {
+    type: Schema.Types.Mixed, // Quill Delta 객체 저장을 위한 타입
+    required: true,
+  },
   tags: [{ type: String }],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment', default: [] }],

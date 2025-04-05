@@ -4,6 +4,7 @@ import "react-quill/dist/quill.snow.css";
 import styled from "styled-components";
 import useCurationCreateStore from "./CurationCreateStore";
 import { Quill } from "react-quill";
+import { Delta } from "quill";
 import { CustomImageBlot } from "../editor/CustomImageBlot";
 import { createGlobalStyle } from "styled-components";
 
@@ -52,7 +53,16 @@ const Editor = styled.div`
 
 const CurationCreateEditor = () => {
   const { data, setData } = useCurationCreateStore();
-  const [contentArray, setContentArray] = useState<string[]>(data.content);const quillRef = useRef<ReactQuill>(null);
+  const [deltaContent, setDeltaContent] = useState(data.content || null);
+  const getHTMLFromDelta = (delta: Delta | null) => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || !delta) return "";
+    const tempContainer = document.createElement("div");
+    const tempEditor = new Quill(tempContainer);
+    tempEditor.setContents(delta);
+    return tempContainer.querySelector(".ql-editor")?.innerHTML || "";
+  };
+  const quillRef = useRef<ReactQuill>(null);
 
   const formats = ["size", "align", "color", "background", "bold", "italic", "underline", "strike", "blockquote", "list", "bullet", "indent", "link", "image", "customImage"];
 
@@ -75,16 +85,28 @@ const CurationCreateEditor = () => {
 
   useEffect(() => {
     // Zustand store에 업데이트
-    setData({ content: contentArray });
-  }, [contentArray]);
+    setData({ content: deltaContent });
+  }, [deltaContent]);
 
+  // HTML -> Delta 초기화
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || !data.content) return;
+  
+    try {
+      // Delta 타입인지 확인하고 적용
+      if ((data.content as Delta).ops && Array.isArray((data.content as Delta).ops)) {
+        editor.setContents(data.content as Delta);
+      }
+    } catch (err) {
+      console.warn("setContents failed:", err);
+    }
+  }, []);
+  
   // Quill 에디터의 내용을 배열로 관리하여 업데이트
-  const handleEditorChange = (content: string) => {
-    setContentArray((prev) => {
-      const newContentArray = [...prev];
-      newContentArray[0] = content; // 배열의 첫 번째 요소로 설정하거나, 로직에 맞게 변경 가능
-      return newContentArray;
-    });
+  const handleEditorChange = (_: string, __: any, ___: string, editor: any) => {
+    const delta = editor.getContents();
+    setDeltaContent(delta);
   };
 
     // 이미지 업로드 및 삽입
@@ -121,7 +143,6 @@ const CurationCreateEditor = () => {
           ref={quillRef}
           style={{ width: "100%", height: "100%" }}
           theme="snow"
-          value={contentArray[0] || ""}
           modules={modules}
           formats={formats}
           onChange={handleEditorChange}

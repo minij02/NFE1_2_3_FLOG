@@ -1,4 +1,7 @@
 import { create } from "zustand";
+import Quill from 'quill';
+
+const Delta = Quill.import('delta');
 
 // 큐레이션 생성에 필요한 데이터 타입 정의
 export interface ICurationCreate {
@@ -7,7 +10,7 @@ export interface ICurationCreate {
   thumbnail: string;
   startDate: Date | null;
   endDate: Date | null;
-  content: string[];
+  content: any;
   tags: string[];
   genderFilter: ("남자" | "여자" | "전체")[];
   ageFilter: ("10대 미만" | "10대" | "20대" | "30대" | "40대" | "50대 이상" | "전체")[];
@@ -43,7 +46,7 @@ const useCurationCreateStore = create<ICurationCreateStore>((set) => ({
     thumbnail: "",
     startDate: null,
     endDate: null,
-    content: [],
+    content: new Delta(),
     tags: [],
     genderFilter: ["전체"] as ("남자" | "여자" | "전체")[], // 리터럴 타입으로 설정
     ageFilter: ["전체"] as ("10대 미만" | "10대" | "20대" | "30대" | "40대" | "50대 이상" | "전체")[],
@@ -64,7 +67,7 @@ const useCurationCreateStore = create<ICurationCreateStore>((set) => ({
         thumbnail: "",
         startDate: null,
         endDate: null,
-        content: [],
+        content: new Delta(),
         tags: [],
         genderFilter: ["전체"] as ("남자" | "여자" | "전체")[],
         ageFilter: ["전체"] as ("10대 미만" | "10대" | "20대" | "30대" | "40대" | "50대 이상" | "전체")[],
