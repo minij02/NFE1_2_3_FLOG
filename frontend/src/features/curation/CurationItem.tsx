@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import Quill, { Delta } from 'quill';
 
 // Styled Components
 const ItemContainer = styled.div`
@@ -81,7 +82,7 @@ interface CurationItemProps {
   title: string;
   startDate: string;
   endDate: string;
-  contentPreview: string;
+  contentPreview: Delta;
   entries: string[];  // 출품 인원 수
   likes: string[];
   comments: string[];
@@ -101,6 +102,16 @@ const CurationItem = ({
   }: CurationItemProps) => {
     const navigate = useNavigate();
 
+    // Delta -> HTML -> plain text
+    const getHTMLFromDelta = (delta: Delta): string => {
+      if (!delta || !Array.isArray((delta as any).ops)) return '';
+    
+      const tempContainer = document.createElement('div');
+      const tempQuill = new Quill(tempContainer);
+      tempQuill.setContents(delta);
+      return tempContainer.querySelector('.ql-editor')?.innerHTML || '';
+    };
+    
     const stripHtmlTags = (html: string) => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
@@ -120,7 +131,7 @@ const CurationItem = ({
           <Title>{title}</Title>
   
           {/* 내용 미리보기 */}
-          <Preview>{stripHtmlTags(contentPreview)}</Preview>
+          <Preview>{stripHtmlTags(getHTMLFromDelta(contentPreview))}</Preview>
   
           {/* 출품 인원, 좋아요, 댓글 수 */}
           <MetaInfo>
