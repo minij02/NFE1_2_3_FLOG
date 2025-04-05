@@ -84,6 +84,7 @@ export const login = async (userId: string, password: string) => {
   // 로그인 성공 시 실패 횟수 초기화
   user.loginFailCount = 0;
   user.lockUntil = undefined;
+  await user.save();
 
   // JWT 토큰 생성
   const token = jwt.sign(
