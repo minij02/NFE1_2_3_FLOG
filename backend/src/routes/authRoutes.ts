@@ -1,5 +1,3 @@
-// src/routes/authRoutes.ts
-
 import express from "express";
 import { signupUser } from "../services/authService";
 import { validateSignup } from "../middlewares/authMiddleware";
