@@ -103,6 +103,33 @@ const CurationCreateEditor = () => {
     }
   }, []);
   
+   // X 버튼은 렌더링 후 DOM 조작으로 삽입
+   useEffect(() => {
+    const editorEl = document.querySelector(".ql-editor");
+    if (!editorEl) return;
+
+    const addDeleteButtons = () => {
+      const imageBlocks = editorEl.querySelectorAll(".custom-image-block");
+      imageBlocks.forEach((block) => {
+        if (!block.querySelector(".delete-button")) {
+          const btn = document.createElement("button");
+          btn.className = "delete-button";
+          btn.textContent = "×";
+          btn.onclick = () => block.remove();
+          block.appendChild(btn);
+        }
+      });
+    };
+
+    const observer = new MutationObserver(addDeleteButtons);
+    observer.observe(editorEl, { childList: true, subtree: true });
+
+    // 처음 실행
+    addDeleteButtons();
+
+    return () => observer.disconnect();
+  }, []);
+
   // Quill 에디터의 내용을 배열로 관리하여 업데이트
   const handleEditorChange = (_: string, __: any, ___: string, editor: any) => {
     const delta = editor.getContents();

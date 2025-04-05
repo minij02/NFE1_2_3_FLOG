@@ -14,16 +14,7 @@ export class CustomImageBlot extends BlockEmbed {
     img.setAttribute('src', value.src);
     img.style.maxWidth = '100%';
 
-    const btn = document.createElement('button');
-    btn.className = 'delete-button';
-    btn.textContent = '×';
-    btn.onclick = () => {
-      const blot = Quill.find(node);
-      if (blot) blot.remove();
-    };
-
     node.appendChild(img);
-    node.appendChild(btn);
     return node;
   }
 
