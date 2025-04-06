@@ -46,6 +46,27 @@ const ImageBox = styled.label`
   }
 `;
 
+const ImagePreviewWrapper = styled.div`
+  position: relative;
+  width: 100px;
+  height: 100px;
+`;
+
+const DeleteButton = styled.button`
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  z-index: 1;
+`;
+
 const DescriptionInput = styled.input`
   width: 100%;
   padding: 10px;
@@ -70,7 +91,7 @@ const CurationSubmissionPage: React.FC = () => {
   const { curationId } = useParams<{ curationId: string }>(); // URL에서 curationId 추출
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
-  const [images, setImages] = useState<string[]>(['', '', '']);
+  const [images, setImages] = useState<string[]>([]); // 파일 URL 배열로 변경
   const [description, setDescription] = useState('');
 
     // 만약 curationId가 없다면 이전 페이지로 돌아가게 하는 로직
@@ -80,6 +101,45 @@ const CurationSubmissionPage: React.FC = () => {
         navigate(-1);
       }
     }, [curationId, navigate]);
+
+    // 이미지 클릭 -> 파일 선택 -> 서버 업로드
+const handleAddImage = async () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (images.length >= 3) {
+      alert('이미지는 최대 3장까지 업로드할 수 있습니다.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const uploadedUrl = res.data.url;
+      setImages((prev) => [...prev, uploadedUrl]);
+    } catch (err) {
+      console.error('이미지 업로드 실패:', err);
+      alert('이미지 업로드에 실패했습니다.');
+    }
+  };
+
+  input.click();
+};
+
+// 이미지 삭제
+const handleDeleteImage = (index: number) => {
+  setImages((prev) => prev.filter((_, i) => i !== index));
+};
 
     const handleImageBoxClick = async (index: number) => {
       const url = prompt("이미지 URL을 입력하세요:");
@@ -101,7 +161,7 @@ const CurationSubmissionPage: React.FC = () => {
     const entryData = {
       curationId,
       title,
-      photos: filteredImages,  // 배열로서 직접 전달
+      photos: images, // 업로드한 URL 경로 사용
       description,
     };
 
@@ -132,16 +192,22 @@ const CurationSubmissionPage: React.FC = () => {
 
       {/* 사진 업로드 */}
       <ImageUploadWrapper>
-        {images.map((image, index) => (
-          <ImageBox key={index} onClick={() => handleImageBoxClick(index)}>
-            {image ? (
-              <img src={image} alt={`큐레이션 이미지 ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <span>+</span>
-            )}
-          </ImageBox>
-        ))}
-      </ImageUploadWrapper>
+  {images.map((img, idx) => (
+    <ImagePreviewWrapper key={idx}>
+      <DeleteButton onClick={() => handleDeleteImage(idx)}>×</DeleteButton>
+      <img
+        src={`http://localhost:5000${img}`}
+        alt={`이미지 ${idx + 1}`}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '5px' }}
+      />
+    </ImagePreviewWrapper>
+  ))}
+  {images.length < 3 && (
+    <ImageBox onClick={handleAddImage}>
+      <span>+</span>
+    </ImageBox>
+  )}
+</ImageUploadWrapper>
 
       {/* 한 줄 설명 입력 */}
       <DescriptionInput

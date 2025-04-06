@@ -700,7 +700,14 @@ const PhotoSlider = ({ photos }: PhotoSliderProps) => {
       {photos.length > 1 && (
         <SliderButton onClick={handlePrev}>{"<"}</SliderButton>
       )}
-      <EntryImage src={photos[currentPhotoIndex]} alt="출품작 사진" />
+      <EntryImage
+  src={
+    photos[currentPhotoIndex].startsWith("/api/")
+      ? `http://localhost:5000${photos[currentPhotoIndex]}`
+      : photos[currentPhotoIndex]
+  }
+  alt="출품작 사진"
+/>
       {photos.length > 1 && (
         <SliderButton onClick={handleNext}>{">"}</SliderButton>
       )}
