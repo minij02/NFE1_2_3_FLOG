@@ -143,7 +143,7 @@ const CurationItem = ({
   
         {/* 썸네일 이미지 */}
         <ThumbnailWrapper>
-          <Thumbnail src={thumbnail} alt={`${title} 썸네일`} />
+        <Thumbnail src={`http://localhost:5000${thumbnail}`} alt={`${title} 썸네일`} />
         </ThumbnailWrapper>
       </ItemContainer>
     );

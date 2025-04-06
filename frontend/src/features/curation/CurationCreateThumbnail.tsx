@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import axios from "axios";
 import useCurationCreateStore from "./CurationCreateStore";
 
 const InputThumbnail = styled.input`
@@ -17,18 +18,34 @@ const InputThumbnail = styled.input`
 
 const CurationCreateThumbnail = () => {
   const { data, setData } = useCurationCreateStore();
-  const [thumbnail, setThumbnail] = useState(data.thumbnail);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setThumbnail(e.target.value);
-    setData({ thumbnail: e.target.value });
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const imageUrl = res.data.url;
+      setData({ thumbnail: imageUrl }); // Zustand에 썸네일 URL 저장
+    } catch (error) {
+      console.error("썸네일 업로드 실패:", error);
+      alert("썸네일 업로드에 실패했습니다.");
+    }
   };
 
   return (
     <InputThumbnail
-      placeholder="썸네일 링크를 입력해주세요"
-      value={thumbnail}
-      onChange={handleChange}
+      type="file"
+      accept="image/*"
+      onChange={handleUpload}
     />
   );
 };

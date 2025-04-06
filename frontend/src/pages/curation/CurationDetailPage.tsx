@@ -361,8 +361,17 @@ const CurationDetailPage = (): JSX.Element => {
     const tempContainer = document.createElement("div");
     const tempEditor = new Quill(tempContainer);
     tempEditor.setContents(delta);
+  
+    const images = tempContainer.querySelectorAll("img");
+    images.forEach((img) => {
+      const src = img.getAttribute("src");
+      if (src && src.startsWith("/api/uploaded-files")) {
+        img.setAttribute("src", `http://localhost:5000${src}`);
+      }
+    });
+  
     return tempContainer.querySelector(".ql-editor")?.innerHTML || "";
-  };
+  };  
 
   useEffect(() => {
     const fetchCuration = async () => {

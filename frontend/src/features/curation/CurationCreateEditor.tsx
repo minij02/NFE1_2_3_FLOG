@@ -3,6 +3,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import styled from "styled-components";
 import useCurationCreateStore from "./CurationCreateStore";
+import axios from "axios";
 import { Quill } from "react-quill";
 import { Delta } from "quill";
 import { CustomImageBlot } from "../editor/CustomImageBlot";
@@ -141,26 +142,35 @@ const CurationCreateEditor = () => {
       const input = document.createElement("input");
       input.setAttribute("type", "file");
       input.setAttribute("accept", "image/*");
-  
+    
       input.addEventListener("change", async () => {
         const file = input.files?.[0];
         if (file) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64 = reader.result as string;
+          const formData = new FormData();
+          formData.append("image", file);
+    
+          try {
+            const res = await axios.post("http://localhost:5000/api/upload", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+    
+            const imageUrl = res.data.url;
             const editor = quillRef.current?.getEditor();
             const range = editor?.getSelection();
+    
             if (editor && range) {
-              editor.insertEmbed(range.index, "customImage", { src: base64 });
+              editor.insertEmbed(range.index, "customImage", { src: imageUrl });
               editor.setSelection(range.index + 1);
             }
-          };
-          reader.readAsDataURL(file);
+          } catch (error) {
+            console.error("이미지 업로드 실패", error);
+            alert("이미지 업로드에 실패했습니다.");
+          }
         }
       });
-  
+    
       input.click();
-    };
+    };    
 
   return (
     <>

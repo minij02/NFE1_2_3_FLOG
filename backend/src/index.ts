@@ -13,6 +13,7 @@ import userRoutes from "./routes/userRoutes"; //마이페이지 관련 라우트
 import followRoutes from "./routes/followRoutes";
 import searchRoutes from "./routes/searchRoutes"; //검색 관련 라우트
 import notificationRoutes from "./routes/notificationRoutes"; //알림 관련 라우트
+import uploadRoutes from "./routes/uploadRoutes"; // 이미지 업로드 라우트
 import setupWebSocket from "./socket/setupWebSocket";
 
 // 환경변수 로드
@@ -33,9 +34,6 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 /*app.use(express.urlencoded({ extended: false })); // 내부 url 파서 사용 */
 
 //포스트 관련 라우트 추가
-//export const path = require("path");
-// app.use(express.static(path.join(__dirname + "public/uploads"))); // 정적 파일 위치 설정
-app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 app.use("/", postRoutes);
 
 // 기본 라우트 (테스트용)
@@ -64,6 +62,9 @@ app.use("/", searchRoutes);
 
 // 알림 관련 라우트 추가
 app.use("/", notificationRoutes);
+
+// 이미지 업로드 라우트 추가
+app.use("/", uploadRoutes);
 
 server.listen(5001, () => {
   console.log(`웹소켓서버실행중`)
